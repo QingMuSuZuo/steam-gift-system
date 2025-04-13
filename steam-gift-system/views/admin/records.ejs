@@ -1,0 +1,460 @@
+<%- include('partials/header') %>
+
+<div class="content-wrapper">
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0">发货记录</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/admin/dashboard">首页</a></li>
+            <li class="breadcrumb-item active">发货记录</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="content">
+    <div class="container-fluid">
+      <!-- 筛选选项 -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">筛选选项</h3>
+          <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+              <i class="fas fa-minus"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <form id="filter-form">
+            <div class="row">
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label>状态</label>
+                  <select class="form-control" name="status">
+                    <option value="">全部</option>
+                    <option value="pending">处理中</option>
+                    <option value="friend_added">已添加好友</option>
+                    <option value="gift_sent">礼物已发送</option>
+                    <option value="completed">已完成</option>
+                    <option value="failed">失败</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label>游戏</label>
+                  <select class="form-control" name="gameId">
+                    <option value="">全部游戏</option>
+                    <% games.forEach(function(game) { %>
+                      <option value="<%= game._id %>"><%= game.customName || game.name %></option>
+                    <% }); %>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label>日期范围</label>
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                    </div>
+                    <input type="text" class="form-control float-right" id="date-range" name="dateRange">
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label>提货码</label>
+                  <input type="text" class="form-control" name="code" placeholder="搜索提货码">
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <button type="submit" class="btn btn-primary float-right">
+                  <i class="fas fa-search"></i> 搜索
+                </button>
+                <button type="reset" class="btn btn-default float-right mr-2">
+                  <i class="fas fa-redo"></i> 重置
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 记录列表 -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">发货记录列表</h3>
+          <div class="card-tools">
+            <button type="button" class="btn btn-tool" id="refresh-records">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+              <i class="fas fa-minus"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="records-table">
+              <thead>
+                <tr>
+                  <th style="width: 10px">#</th>
+                  <th>提货码</th>
+                  <th>游戏</th>
+                  <th>Steam信息</th>
+                  <th>状态</th>
+                  <th>创建时间</th>
+                  <th>完成时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="records-list">
+                <% if (records.length === 0) { %>
+                  <tr>
+                    <td colspan="8" class="text-center">暂无记录</td>
+                  </tr>
+                <% } else { %>
+                  <% records.forEach(function(record, index) { %>
+                    <tr>
+                      <td><%= index + 1 %></td>
+                      <td><%= record.code %></td>
+                      <td>
+                        <% if (record.gameId) { %>
+                          <%= record.gameId.customName || record.gameId.name %>
+                        <% } else { %>
+                          未知游戏
+                        <% } %>
+                      </td>
+                      <td><a href="<%= record.steamUrl %>" target="_blank"><%= record.steamId %></a></td>
+                      <td>
+                        <% if (record.status === 'pending') { %>
+                          <span class="badge badge-warning">处理中</span>
+                        <% } else if (record.status === 'friend_added') { %>
+                          <span class="badge badge-info">已添加好友</span>
+                        <% } else if (record.status === 'gift_sent') { %>
+                          <span class="badge badge-primary">礼物已发送</span>
+                        <% } else if (record.status === 'completed') { %>
+                          <span class="badge badge-success">已完成</span>
+                        <% } else if (record.status === 'failed') { %>
+                          <span class="badge badge-danger">失败</span>
+                        <% } %>
+                      </td>
+                      <td><%= new Date(record.createdAt).toLocaleString() %></td>
+                      <td>
+                        <% if (record.completedAt) { %>
+                          <%= new Date(record.completedAt).toLocaleString() %>
+                        <% } else { %>
+                          -
+                        <% } %>
+                      </td>
+                      <td>
+                        <button type="button" class="btn btn-sm btn-info view-record" data-id="<%= record._id %>">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <% if (record.status === 'failed') { %>
+                          <button type="button" class="btn btn-sm btn-warning retry-record" data-id="<%= record._id %>">
+                            <i class="fas fa-redo"></i>
+                          </button>
+                        <% } %>
+                      </td>
+                    </tr>
+                  <% }); %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- 分页 -->
+        <div class="card-footer clearfix">
+          <ul class="pagination pagination-sm m-0 float-right">
+            <% if (currentPage > 1) { %>
+              <li class="page-item"><a class="page-link" href="?page=1">&laquo;</a></li>
+              <li class="page-item"><a class="page-link" href="?page=<%= currentPage - 1 %>">&lsaquo;</a></li>
+            <% } else { %>
+              <li class="page-item disabled"><a class="page-link" href="#">&laquo;</a></li>
+              <li class="page-item disabled"><a class="page-link" href="#">&lsaquo;</a></li>
+            <% } %>
+            
+            <% for(let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) { %>
+              <% if (i === currentPage) { %>
+                <li class="page-item active"><a class="page-link" href="?page=<%= i %>"><%= i %></a></li>
+              <% } else { %>
+                <li class="page-item"><a class="page-link" href="?page=<%= i %>"><%= i %></a></li>
+              <% } %>
+            <% } %>
+            
+            <% if (currentPage < totalPages) { %>
+              <li class="page-item"><a class="page-link" href="?page=<%= currentPage + 1 %>">&rsaquo;</a></li>
+              <li class="page-item"><a class="page-link" href="?page=<%= totalPages %>">&raquo;</a></li>
+            <% } else { %>
+              <li class="page-item disabled"><a class="page-link" href="#">&rsaquo;</a></li>
+              <li class="page-item disabled"><a class="page-link" href="#">&raquo;</a></li>
+            <% } %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- 记录详情模态框 -->
+<div class="modal fade" id="record-detail-modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">提货记录详情</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-3" id="record-loading">
+          <i class="fas fa-spinner fa-spin"></i> 加载中...
+        </div>
+        <div id="record-details" style="display: none;">
+          <table class="table table-bordered">
+            <tbody>
+              <tr>
+                <th style="width: 30%">提货码</th>
+                <td id="detail-code"></td>
+              </tr>
+              <tr>
+                <th>游戏</th>
+                <td id="detail-game"></td>
+              </tr>
+              <tr>
+                <th>Steam ID</th>
+                <td id="detail-steam-id"></td>
+              </tr>
+              <tr>
+                <th>Steam 链接</th>
+                <td><a href="#" id="detail-steam-url" target="_blank"></a></td>
+              </tr>
+              <tr>
+                <th>状态</th>
+                <td id="detail-status"></td>
+              </tr>
+              <tr>
+                <th>创建时间</th>
+                <td id="detail-created"></td>
+              </tr>
+              <tr>
+                <th>更新时间</th>
+                <td id="detail-updated"></td>
+              </tr>
+              <tr>
+                <th>完成时间</th>
+                <td id="detail-completed"></td>
+              </tr>
+              <tr id="error-message-row" style="display: none;">
+                <th>错误信息</th>
+                <td id="detail-error" class="text-danger"></td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div id="log-section" class="mt-3">
+            <h5>处理日志</h5>
+            <div class="card">
+              <div class="card-body bg-light p-2">
+                <pre id="detail-logs" style="max-height: 200px; overflow-y: auto;"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        <button type="button" class="btn btn-warning" id="retry-button" style="display: none;">
+          <i class="fas fa-redo"></i> 重试
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(function() {
+    // 日期范围选择器初始化
+    $('#date-range').daterangepicker({
+      locale: {
+        format: 'YYYY/MM/DD',
+        applyLabel: '确定',
+        cancelLabel: '取消',
+        fromLabel: '从',
+        toLabel: '到',
+        customRangeLabel: '自定义范围',
+        daysOfWeek: ['日', '一', '二', '三', '四', '五', '六'],
+        monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+        firstDay: 1
+      },
+      autoUpdateInput: false
+    });
+    
+    $('#date-range').on('apply.daterangepicker', function(ev, picker) {
+      $(this).val(picker.startDate.format('YYYY/MM/DD') + ' - ' + picker.endDate.format('YYYY/MM/DD'));
+    });
+
+    $('#date-range').on('cancel.daterangepicker', function(ev, picker) {
+      $(this).val('');
+    });
+
+    // 提交筛选表单
+    $('#filter-form').on('submit', function(e) {
+      e.preventDefault();
+      let queryParams = $(this).serialize();
+      window.location.href = '/admin/records?' + queryParams;
+    });
+
+    // 查看记录详情
+    $('.view-record').on('click', function() {
+      const recordId = $(this).data('id');
+      $('#record-loading').show();
+      $('#record-details').hide();
+      $('#retry-button').hide();
+      
+      $('#record-detail-modal').modal('show');
+      
+      // 获取记录详情
+      $.ajax({
+        url: '/admin/api/records/' + recordId,
+        method: 'GET',
+        success: function(data) {
+          $('#detail-code').text(data.code);
+          $('#detail-game').text(data.gameName || '未知游戏');
+          $('#detail-steam-id').text(data.steamId);
+          $('#detail-steam-url').text(data.steamUrl).attr('href', data.steamUrl);
+          
+          let statusText = '';
+          let statusClass = '';
+          
+          switch(data.status) {
+            case 'pending':
+              statusText = '处理中';
+              statusClass = 'text-warning';
+              break;
+            case 'friend_added':
+              statusText = '已添加好友';
+              statusClass = 'text-info';
+              break;
+            case 'gift_sent':
+              statusText = '礼物已发送';
+              statusClass = 'text-primary';
+              break;
+            case 'completed':
+              statusText = '已完成';
+              statusClass = 'text-success';
+              break;
+            case 'failed':
+              statusText = '失败';
+              statusClass = 'text-danger';
+              $('#retry-button').show();
+              break;
+          }
+          
+          $('#detail-status').html(`<span class="${statusClass}">${statusText}</span>`);
+          $('#detail-created').text(new Date(data.createdAt).toLocaleString());
+          $('#detail-updated').text(new Date(data.updatedAt).toLocaleString());
+          
+          if (data.completedAt) {
+            $('#detail-completed').text(new Date(data.completedAt).toLocaleString());
+          } else {
+            $('#detail-completed').text('-');
+          }
+          
+          if (data.errorMessage) {
+            $('#error-message-row').show();
+            $('#detail-error').text(data.errorMessage);
+          } else {
+            $('#error-message-row').hide();
+          }
+          
+          // 处理日志
+          if (data.logs && data.logs.length > 0) {
+            let logsHtml = '';
+            data.logs.forEach(function(log) {
+              let timestamp = new Date(log.timestamp).toLocaleString();
+              logsHtml += `[${timestamp}] ${log.message}\n`;
+            });
+            $('#detail-logs').text(logsHtml);
+            $('#log-section').show();
+          } else {
+            $('#log-section').hide();
+          }
+          
+          $('#record-loading').hide();
+          $('#record-details').show();
+          
+          // 设置重试按钮的记录ID
+          $('#retry-button').data('id', recordId);
+        },
+        error: function() {
+          $('#record-loading').html('<div class="text-danger">加载失败，请重试</div>');
+        }
+      });
+    });
+    
+    // 重试按钮
+    $('#retry-button, .retry-record').on('click', function() {
+      const recordId = $(this).data('id');
+      const $btn = $(this);
+      const originalText = $btn.html();
+      
+      $btn.html('<i class="fas fa-spinner fa-spin"></i> 处理中...').attr('disabled', true);
+      
+      $.ajax({
+        url: '/admin/api/records/' + recordId + '/retry',
+        method: 'POST',
+        success: function(response) {
+          if (response.success) {
+            Toast.fire({
+              icon: 'success',
+              title: '已成功重新提交礼物发送请求'
+            });
+            
+            // 2秒后刷新页面
+            setTimeout(function() {
+              window.location.reload();
+            }, 2000);
+          } else {
+            Toast.fire({
+              icon: 'error',
+              title: response.message || '操作失败，请重试'
+            });
+            $btn.html(originalText).attr('disabled', false);
+          }
+        },
+        error: function() {
+          Toast.fire({
+            icon: 'error',
+            title: '服务器错误，请重试'
+          });
+          $btn.html(originalText).attr('disabled', false);
+        }
+      });
+    });
+    
+    // 刷新记录按钮
+    $('#refresh-records').on('click', function() {
+      window.location.reload();
+    });
+    
+    // 初始化提示框
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000
+    });
+  });
+</script>
+
+<%- include('partials/footer') %>

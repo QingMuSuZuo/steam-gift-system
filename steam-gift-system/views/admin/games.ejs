@@ -1,0 +1,520 @@
+<%- include('./partials/header') %>
+
+<div class="content-wrapper">
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0">游戏管理</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/admin/dashboard">首页</a></li>
+            <li class="breadcrumb-item active">游戏管理</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="content">
+    <div class="container-fluid">
+      <!-- 搜索框 -->
+      <div class="row mb-3">
+        <div class="col-md-6 offset-md-6">
+          <div class="input-group">
+            <input type="text" class="form-control" id="searchGame" placeholder="搜索游戏...">
+            <div class="input-group-append">
+              <button class="btn btn-primary" type="button" id="searchButton">
+                <i class="fas fa-search"></i> 搜索
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 游戏列表和添加游戏按钮 -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">游戏列表</h3>
+              <div class="card-tools">
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addGameModal">
+                  <i class="fas fa-plus"></i> 添加游戏
+                </button>
+              </div>
+            </div>
+            <div class="card-body table-responsive p-0">
+              <table class="table table-hover text-nowrap">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>游戏图标</th>
+                    <th>游戏名称</th>
+                    <th>Steam链接</th>
+                    <th>创建时间</th>
+                    <th>提货码</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="gamesList">
+                  <% if (games && games.length > 0) { %>
+                    <% games.forEach(game => { %>
+                      <tr>
+                        <td><%= game._id %></td>
+                        <td>
+                          <img src="<%= game.imageUrl %>" alt="<%= game.name %>" class="game-icon" width="60">
+                        </td>
+                        <td><%= game.customName || game.name %></td>
+                        <td>
+                          <a href="<%= game.steamLink %>" target="_blank" class="text-truncate d-inline-block" style="max-width: 200px;">
+                            <%= game.steamLink %>
+                          </a>
+                        </td>
+                        <td><%= new Date(game.createdAt).toLocaleString() %></td>
+                        <td>
+                          <a href="/admin/games/<%= game._id %>/codes" class="btn btn-info btn-sm">
+                            <i class="fas fa-ticket-alt"></i> 提货码管理
+                          </a>
+                        </td>
+                        <td>
+                          <div class="btn-group">
+                            <button type="button" class="btn btn-primary btn-sm edit-game" data-id="<%= game._id %>">
+                              <i class="fas fa-edit"></i> 编辑
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm delete-game" data-id="<%= game._id %>">
+                              <i class="fas fa-trash"></i> 删除
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="7" class="text-center">暂无游戏数据</td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- 添加游戏模态框 -->
+<div class="modal fade" id="addGameModal" tabindex="-1" role="dialog" aria-labelledby="addGameModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addGameModalLabel">添加游戏</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="addGameForm">
+          <div class="form-group">
+            <label for="steamLink">Steam游戏链接</label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="steamLink" name="steamLink" placeholder="https://store.steampowered.com/app/...">
+              <div class="input-group-append">
+                <button class="btn btn-info" type="button" id="fetchGameInfo">获取游戏信息</button>
+              </div>
+            </div>
+            <small class="form-text text-muted">输入Steam商店游戏页面链接，系统将自动获取游戏信息</small>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="name">游戏名称</label>
+                <input type="text" class="form-control" id="name" name="name" readonly>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="appId">Steam App ID</label>
+                <input type="text" class="form-control" id="appId" name="appId" readonly>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="customName">自定义游戏名称（可选）</label>
+            <input type="text" class="form-control" id="customName" name="customName" placeholder="自定义显示名称">
+          </div>
+          
+          <div class="form-group">
+            <label>游戏图标</label>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="custom-control custom-radio">
+                  <input class="custom-control-input" type="radio" id="useDefaultImage" name="imageOption" value="default" checked>
+                  <label for="useDefaultImage" class="custom-control-label">使用Steam默认图标</label>
+                </div>
+                <div class="mt-2">
+                  <img id="defaultImagePreview" src="" alt="默认图标" class="img-fluid img-thumbnail" style="max-height: 100px; display: none;">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="custom-control custom-radio">
+                  <input class="custom-control-input" type="radio" id="useCustomImage" name="imageOption" value="custom">
+                  <label for="useCustomImage" class="custom-control-label">上传自定义图标</label>
+                </div>
+                <div class="input-group mt-2">
+                  <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="customImage" name="customImage" accept="image/*">
+                    <label class="custom-file-label" for="customImage">选择图片</label>
+                  </div>
+                </div>
+                <div class="mt-2">
+                  <img id="customImagePreview" src="" alt="自定义图标" class="img-fluid img-thumbnail" style="max-height: 100px; display: none;">
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="description">游戏描述（可选）</label>
+            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="price">价格（参考）</label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text">¥</span>
+              </div>
+              <input type="number" class="form-control" id="price" name="price" step="0.01">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" id="saveGame">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑游戏模态框 -->
+<div class="modal fade" id="editGameModal" tabindex="-1" role="dialog" aria-labelledby="editGameModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editGameModalLabel">编辑游戏</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="editGameForm">
+          <input type="hidden" id="editGameId" name="gameId">
+          
+          <div class="form-group">
+            <label for="editSteamLink">Steam游戏链接</label>
+            <input type="text" class="form-control" id="editSteamLink" name="steamLink" readonly>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="editName">游戏名称</label>
+                <input type="text" class="form-control" id="editName" name="name" readonly>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="editAppId">Steam App ID</label>
+                <input type="text" class="form-control" id="editAppId" name="appId" readonly>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="editCustomName">自定义游戏名称（可选）</label>
+            <input type="text" class="form-control" id="editCustomName" name="customName" placeholder="自定义显示名称">
+          </div>
+          
+          <div class="form-group">
+            <label>游戏图标</label>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="custom-control custom-radio">
+                  <input class="custom-control-input" type="radio" id="editUseDefaultImage" name="editImageOption" value="default">
+                  <label for="editUseDefaultImage" class="custom-control-label">使用Steam默认图标</label>
+                </div>
+                <div class="mt-2">
+                  <img id="editDefaultImagePreview" src="" alt="默认图标" class="img-fluid img-thumbnail" style="max-height: 100px;">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="custom-control custom-radio">
+                  <input class="custom-control-input" type="radio" id="editUseCustomImage" name="editImageOption" value="custom">
+                  <label for="editUseCustomImage" class="custom-control-label">上传自定义图标</label>
+                </div>
+                <div class="input-group mt-2">
+                  <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="editCustomImage" name="customImage" accept="image/*">
+                    <label class="custom-file-label" for="editCustomImage">选择图片</label>
+                  </div>
+                </div>
+                <div class="mt-2">
+                  <img id="editCustomImagePreview" src="" alt="自定义图标" class="img-fluid img-thumbnail" style="max-height: 100px;">
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="editDescription">游戏描述（可选）</label>
+            <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="editPrice">价格（参考）</label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text">¥</span>
+              </div>
+              <input type="number" class="form-control" id="editPrice" name="price" step="0.01">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" id="updateGame">保存修改</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteGameModal" tabindex="-1" role="dialog" aria-labelledby="deleteGameModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteGameModalLabel">确认删除</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>确定要删除这个游戏吗？此操作将同时删除与此游戏关联的所有未使用提货码。</p>
+        <p class="text-danger"><strong>注意：此操作不可逆！</strong></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteGame">确认删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    // 获取游戏信息
+    $('#fetchGameInfo').click(function() {
+      const steamLink = $('#steamLink').val();
+      if (!steamLink) {
+        alert('请输入Steam游戏链接');
+        return;
+      }
+      
+      $.ajax({
+        url: '/admin/api/fetch-game-info',
+        method: 'POST',
+        data: { steamLink },
+        beforeSend: function() {
+          $('#fetchGameInfo').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> 获取中...');
+        },
+        success: function(data) {
+          $('#name').val(data.name);
+          $('#appId').val(data.appId);
+          $('#price').val(data.price);
+          $('#description').val(data.description);
+          $('#defaultImagePreview').attr('src', data.imageUrl).show();
+        },
+        error: function(xhr) {
+          alert('获取游戏信息失败: ' + xhr.responseJSON.message);
+        },
+        complete: function() {
+          $('#fetchGameInfo').prop('disabled', false).html('获取游戏信息');
+        }
+      });
+    });
+    
+    // 自定义图片预览
+    $('#customImage').change(function() {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          $('#customImagePreview').attr('src', e.target.result).show();
+          $('#useCustomImage').prop('checked', true);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+    
+    // 保存游戏
+    $('#saveGame').click(function() {
+      const formData = new FormData(document.getElementById('addGameForm'));
+      
+      $.ajax({
+        url: '/admin/games',
+        method: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        beforeSend: function() {
+          $('#saveGame').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> 保存中...');
+        },
+        success: function() {
+          alert('游戏添加成功');
+          $('#addGameModal').modal('hide');
+          window.location.reload();
+        },
+        error: function(xhr) {
+          alert('添加游戏失败: ' + xhr.responseJSON.message);
+        },
+        complete: function() {
+          $('#saveGame').prop('disabled', false).html('保存');
+        }
+      });
+    });
+    
+    // 编辑游戏
+    $('.edit-game').click(function() {
+      const gameId = $(this).data('id');
+      
+      $.ajax({
+        url: `/admin/games/${gameId}`,
+        method: 'GET',
+        success: function(game) {
+          $('#editGameId').val(game._id);
+          $('#editSteamLink').val(game.steamLink);
+          $('#editName').val(game.name);
+          $('#editAppId').val(game.appId);
+          $('#editCustomName').val(game.customName);
+          $('#editDescription').val(game.description);
+          $('#editPrice').val(game.price);
+          
+          if (game.isCustomImage) {
+            $('#editUseCustomImage').prop('checked', true);
+            $('#editCustomImagePreview').attr('src', game.imageUrl).show();
+          } else {
+            $('#editUseDefaultImage').prop('checked', true);
+            $('#editDefaultImagePreview').attr('src', game.imageUrl).show();
+          }
+          
+          $('#editGameModal').modal('show');
+        },
+        error: function(xhr) {
+          alert('获取游戏信息失败: ' + xhr.responseJSON.message);
+        }
+      });
+    });
+    
+    // 编辑自定义图片预览
+    $('#editCustomImage').change(function() {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          $('#editCustomImagePreview').attr('src', e.target.result).show();
+          $('#editUseCustomImage').prop('checked', true);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+    
+    // 更新游戏
+    $('#updateGame').click(function() {
+      const gameId = $('#editGameId').val();
+      const formData = new FormData(document.getElementById('editGameForm'));
+      
+      $.ajax({
+        url: `/admin/games/${gameId}`,
+        method: 'PUT',
+        data: formData,
+        contentType: false,
+        processData: false,
+        beforeSend: function() {
+          $('#updateGame').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> 更新中...');
+        },
+        success: function() {
+          alert('游戏更新成功');
+          $('#editGameModal').modal('hide');
+          window.location.reload();
+        },
+        error: function(xhr) {
+          alert('更新游戏失败: ' + xhr.responseJSON.message);
+        },
+        complete: function() {
+          $('#updateGame').prop('disabled', false).html('保存修改');
+        }
+      });
+    });
+    
+    // 删除游戏
+    let gameIdToDelete;
+    
+    $('.delete-game').click(function() {
+      gameIdToDelete = $(this).data('id');
+      $('#deleteGameModal').modal('show');
+    });
+    
+    $('#confirmDeleteGame').click(function() {
+      $.ajax({
+        url: `/admin/games/${gameIdToDelete}`,
+        method: 'DELETE',
+        beforeSend: function() {
+          $('#confirmDeleteGame').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> 删除中...');
+        },
+        success: function() {
+          alert('游戏删除成功');
+          $('#deleteGameModal').modal('hide');
+          window.location.reload();
+        },
+        error: function(xhr) {
+          alert('删除游戏失败: ' + xhr.responseJSON.message);
+        },
+        complete: function() {
+          $('#confirmDeleteGame').prop('disabled', false).html('确认删除');
+        }
+      });
+    });
+    
+    // 搜索游戏
+    $('#searchButton').click(function() {
+      const searchTerm = $('#searchGame').val().toLowerCase();
+      
+      $('#gamesList tr').each(function() {
+        const gameName = $(this).find('td:nth-child(3)').text().toLowerCase();
+        const steamLink = $(this).find('td:nth-child(4) a').text().toLowerCase();
+        
+        if (gameName.includes(searchTerm) || steamLink.includes(searchTerm)) {
+          $(this).show();
+        } else {
+          $(this).hide();
+        }
+      });
+    });
+    
+    // 按下回车键搜索
+    $('#searchGame').keypress(function(e) {
+      if (e.which === 13) {
+        $('#searchButton').click();
+      }
+    });
+  });
+</script>
+
+<%- include('./partials/footer') %>

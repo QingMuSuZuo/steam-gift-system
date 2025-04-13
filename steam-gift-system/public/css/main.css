@@ -1,0 +1,124 @@
+/* 全局样式 */
+:root {
+    --primary-color: #171a21;
+    --secondary-color: #66c0f4;
+    --accent-color: #1b2838;
+    --text-color: #c7d5e0;
+    --background-color: #1b2838;
+    --success-color: #5c9e31;
+    --error-color: #c91c1c;
+    --warning-color: #e6a23c;
+    --font-family: 'Montserrat', sans-serif;
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: var(--font-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+  }
+  
+  a {
+    color: var(--secondary-color);
+    text-decoration: none;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+  
+  button, .button {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--font-family);
+    font-weight: 600;
+    transition: background-color 0.3s;
+  }
+  
+  button:hover, .button:hover {
+    background-color: #7fd1ff;
+  }
+  
+  button.danger {
+    background-color: var(--error-color);
+    color: white;
+  }
+  
+  button.danger:hover {
+    background-color: #e52e2e;
+  }
+  
+  input, textarea, select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #2a475e;
+    border-radius: 4px;
+    background-color: #121a24;
+    color: var(--text-color);
+    font-family: var(--font-family);
+  }
+  
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+  }
+  
+  .container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .card {
+    background-color: var(--accent-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .status-success {
+    background-color: var(--success-color);
+    color: white;
+  }
+  
+  .status-pending {
+    background-color: var(--warning-color);
+    color: white;
+  }
+  
+  .status-error {
+    background-color: var(--error-color);
+    color: white;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+  

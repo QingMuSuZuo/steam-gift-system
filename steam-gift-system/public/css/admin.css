@@ -1,0 +1,166 @@
+/* 管理员界面样式 */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  padding: 20px 0;
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-logo {
+  text-align: center;
+  padding: 20px 0;
+  margin-bottom: 30px;
+  border-bottom: 1px solid rgba(199, 213, 224, 0.1);
+}
+
+.sidebar-logo img {
+  width: 120px;
+}
+
+.sidebar-menu {
+  list-style: none;
+}
+
+.sidebar-menu li {
+  margin-bottom: 5px;
+}
+
+.sidebar-menu a {
+  display: flex;
+  align-items: center;
+  padding: 12px 25px;
+  color: var(--text-color);
+  text-decoration: none;
+  transition: background-color 0.3s;
+}
+
+.sidebar-menu a:hover {
+  background-color: rgba(102, 192, 244, 0.1);
+}
+
+.sidebar-menu a.active {
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.sidebar-menu .icon {
+  margin-right: 15px;
+  width: 20px;
+  height: 20px;
+}
+
+.sidebar-footer {
+  padding: 20px;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  border-top: 1px solid rgba(199, 213, 224, 0.1);
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: color 0.3s;
+}
+
+.logout-btn:hover {
+  color: var(--secondary-color);
+}
+
+.logout-btn .icon {
+  margin-right: 10px;
+  width: 20px;
+  height: 20px;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 250px;
+  padding: 30px;
+}
+
+.content-header {
+  margin-bottom: 30px;
+}
+
+.content-header h1 {
+  font-size: 2rem;
+  color: var(--text-color);
+  margin-bottom: 10px;
+}
+
+.breadcrumb {
+  display: flex;
+  font-size: 0.9rem;
+  color: #6e7e8a;
+}
+
+.breadcrumb span {
+  margin: 0 5px;
+}
+
+.table-container {
+  background-color: var(--accent-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  background-color: #121a24;
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+}
+
+tbody td {
+  padding: 15px;
+  border-bottom: 1px solid #2a475e;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.search-bar {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid #2a475e;
+  border-radius: 4px 0 0 4px;
+  background-color: #121a24;
+  color: var(--text-color);
+}
+
+.search-bar button {
+  border-radius: 0 4px 4px 0;
+  padding: 10px 20px;
+}

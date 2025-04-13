@@ -1,0 +1,140 @@
+/* 提货页面特定样式 */
+.redemption-container {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 30px;
+  background-color: var(--accent-color);
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.redemption-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.redemption-header h1 {
+  font-size: 2.5rem;
+  color: var(--secondary-color);
+  margin-bottom: 10px;
+}
+
+.redemption-header h2 {
+  font-size: 1.2rem;
+  color: var(--text-color);
+  font-weight: 400;
+}
+
+.redemption-form {
+  margin-bottom: 25px;
+}
+
+.redemption-form .form-control {
+  margin-bottom: 20px;
+}
+
+.redemption-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.redemption-form input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #2a475e;
+  background-color: #121a24;
+  color: white;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.redemption-form input:focus {
+  border-color: var(--secondary-color);
+  outline: none;
+}
+
+.redemption-form button {
+  width: 100%;
+  padding: 15px;
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+  border: none;
+  border-radius: 5px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.redemption-form button:hover {
+  background-color: #7fd1ff;
+}
+
+.status-area {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+}
+
+.status-area h3 {
+  margin-bottom: 15px;
+  color: var(--secondary-color);
+}
+
+.status-steps {
+  list-style: none;
+}
+
+.status-steps li {
+  margin-bottom: 10px;
+  padding-left: 30px;
+  position: relative;
+}
+
+.status-steps li:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.status-steps li.pending:before {
+  background-image: url('../images/icons/pending.svg');
+}
+
+.status-steps li.success:before {
+  background-image: url('../images/icons/success.svg');
+}
+
+.status-steps li.error:before {
+  background-image: url('../images/icons/error.svg');
+}
+
+.steam-logo {
+  max-width: 120px;
+  margin: 0 auto 20px;
+  display: block;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .redemption-container {
+    margin: 20px;
+    padding: 20px;
+  }
+  
+  .redemption-header h1 {
+    font-size: 2rem;
+  }
+  
+  .redemption-header h2 {
+    font-size: 1rem;
+  }
+}

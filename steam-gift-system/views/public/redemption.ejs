@@ -1,0 +1,226 @@
+<div class="redemption-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-2"><i class="fab fa-steam me-2"></i>STEAM礼物提货</h2>
+                    <p class="mb-0 lead"><i class="fas fa-shipping-fast me-2"></i>24H自动发货</p>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- 步骤指示器 -->
+                    <div class="redemption-steps mb-4">
+                        <div class="d-flex justify-content-between">
+                            <div class="step active" id="step-1">
+                                <div class="step-icon">1</div>
+                                <div class="step-text">输入信息</div>
+                            </div>
+                            <div class="step-line"></div>
+                            <div class="step" id="step-2">
+                                <div class="step-icon">2</div>
+                                <div class="step-text">添加好友</div>
+                            </div>
+                            <div class="step-line"></div>
+                            <div class="step" id="step-3">
+                                <div class="step-icon">3</div>
+                                <div class="step-text">发送礼物</div>
+                            </div>
+                            <div class="step-line"></div>
+                            <div class="step" id="step-4">
+                                <div class="step-icon">4</div>
+                                <div class="step-text">完成</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 提货表单部分 -->
+                    <div id="redemption-form-container" class="mb-4">
+                        <form id="redemption-form" action="/redeem" method="POST">
+                            <div class="mb-3">
+                                <label for="redemptionCode" class="form-label">
+                                    <span class="text-danger">*</span> 提货码
+                                </label>
+                                <input type="text" class="form-control form-control-lg" id="redemptionCode" 
+                                       name="code" placeholder="请输入您的提货码" required 
+                                       autocomplete="off">
+                                <div class="form-text">请输入您获得的提货码，注意区分大小写</div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="steamLink" class="form-label">
+                                    <span class="text-danger">*</span> Steam好友链接/代码/主页链接
+                                </label>
+                                <input type="text" class="form-control form-control-lg" id="steamLink" 
+                                       name="steamLink" placeholder="Steam好友链接、好友代码或Steam主页链接" required>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i> 支持以下格式:
+                                    <ul class="mt-1 mb-0">
+                                        <li>Steam好友代码: 例如 123456789</li>
+                                        <li>Steam好友链接: 例如 https://steamcommunity.com/profiles/76561198xxxxxxxxx</li>
+                                        <li>Steam主页链接: 例如 https://steamcommunity.com/id/xxxx</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-paper-plane me-2"></i>提交
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 状态显示部分 - 默认隐藏 -->
+                    <div id="redemption-status" class="d-none">
+                        <div class="text-center mb-4">
+                            <div id="status-spinner" class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h4 id="status-title" class="mt-3">正在处理您的请求...</h4>
+                            <p id="status-message" class="text-muted">请稍候，我们正在验证您的提货码</p>
+                        </div>
+                        
+                        <div id="friend-request-container" class="d-none">
+                            <div class="alert alert-info">
+                                <h5><i class="fas fa-handshake me-2"></i>请接受好友请求</h5>
+                                <p>我们的Steam机器人 "<span id="bot-name">Steam礼物助手</span>" 已向您发送好友请求，请登录Steam并接受。</p>
+                                <p class="mb-0">接受好友请求后，请点击下方按钮：</p>
+                            </div>
+                            <div class="d-grid">
+                                <button id="confirm-friend-btn" class="btn btn-success btn-lg">
+                                    <i class="fas fa-check-circle me-2"></i>我已添加好友
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="gift-process-container" class="d-none">
+                            <div class="alert alert-info">
+                                <h5><i class="fas fa-gift me-2"></i>礼物发送中</h5>
+                                <p>我们正在准备您的游戏礼物，请保持在线并随时检查您的Steam通知。</p>
+                                <p class="mb-0">游戏礼物准备就绪后，您将收到一条Steam通知，请及时接收礼物。</p>
+                            </div>
+                        </div>
+                        
+                        <div id="error-container" class="d-none">
+                            <div class="alert alert-danger">
+                                <h5><i class="fas fa-exclamation-triangle me-2"></i>操作出错</h5>
+                                <p id="error-message">提货码验证失败，请确认提货码是否正确。</p>
+                            </div>
+                            <div class="d-grid">
+                                <button id="retry-btn" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-redo me-2"></i>重试
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="success-container" class="d-none">
+                            <div class="alert alert-success">
+                                <h5><i class="fas fa-check-circle me-2"></i>礼物发送成功</h5>
+                                <p>恭喜！您的游戏礼物已成功发送。</p>
+                                <p class="mb-0">请检查您的Steam礼物库，接受并享受您的游戏！</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-light p-4">
+                    <div class="redemption-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>提货须知</h5>
+                        <ul class="mb-0">
+                            <li>提货码仅能使用一次，请确保输入正确</li>
+                            <li>请确保您的Steam账户可以接收好友请求和游戏礼物</li>
+                            <li>整个提货过程需要保持Steam在线</li>
+                            <li>如遇到问题，请联系我们的客服</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 引入提货页面JS -->
+<script src="/js/redemption.js"></script>
+
+<style>
+    /* 提货页面特定样式 */
+    .redemption-container {
+        padding: 2rem 0;
+    }
+    
+    .redemption-steps {
+        margin-bottom: 2rem;
+    }
+    
+    .step {
+        text-align: center;
+        position: relative;
+        width: 80px;
+    }
+    
+    .step-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 8px;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    
+    .step.active .step-icon {
+        background-color: #0d6efd;
+        color: white;
+    }
+    
+    .step.completed .step-icon {
+        background-color: #198754;
+        color: white;
+    }
+    
+    .step-line {
+        flex: 1;
+        height: 3px;
+        background-color: #e9ecef;
+        margin-top: 20px;
+    }
+    
+    .step-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .step.active .step-text {
+        color: #0d6efd;
+        font-weight: bold;
+    }
+    
+    .step.completed .step-text {
+        color: #198754;
+        font-weight: bold;
+    }
+    
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+        .step {
+            width: 60px;
+        }
+        
+        .step-text {
+            font-size: 0.75rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .redemption-steps .step-text {
+            display: none;
+        }
+        
+        .step {
+            width: 40px;
+        }
+    }
+</style>

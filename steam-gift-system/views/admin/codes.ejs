@@ -1,0 +1,344 @@
+<%- include('layout', { title: '提货码管理', active: 'games' }) %>
+
+<div class="content-wrapper">
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0">提货码管理 - <%= game.name %></h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/admin/dashboard">首页</a></li>
+            <li class="breadcrumb-item"><a href="/admin/games">游戏管理</a></li>
+            <li class="breadcrumb-item active">提货码管理</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <!-- 游戏信息卡片 -->
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">游戏信息</h3>
+            </div>
+            <div class="card-body">
+              <div class="text-center mb-3">
+                <img src="<%= game.imageUrl %>" alt="<%= game.name %>" class="img-fluid" style="max-height: 150px;">
+              </div>
+              <dl class="row">
+                <dt class="col-sm-4">游戏名称</dt>
+                <dd class="col-sm-8"><%= game.customName || game.name %></dd>
+                
+                <dt class="col-sm-4">Steam链接</dt>
+                <dd class="col-sm-8">
+                  <a href="<%= game.steamLink %>" target="_blank">Steam商店</a>
+                </dd>
+                
+                <dt class="col-sm-4">价格</dt>
+                <dd class="col-sm-8">￥<%= game.price || '未设置' %></dd>
+                
+                <dt class="col-sm-4">创建时间</dt>
+                <dd class="col-sm-8"><%= new Date(game.createdAt).toLocaleString() %></dd>
+              </dl>
+            </div>
+          </div>
+
+          <!-- 生成提货码卡片 -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">生成提货码</h3>
+            </div>
+            <div class="card-body">
+              <form id="generateCodesForm">
+                <div class="form-group">
+                  <label for="codeCount">生成数量</label>
+                  <input type="number" class="form-control" id="codeCount" name="codeCount" min="1" max="100" value="1" required>
+                </div>
+                <div class="form-group">
+                  <label for="codePrefix">前缀 (可选)</label>
+                  <input type="text" class="form-control" id="codePrefix" name="codePrefix" placeholder="如: GAME-">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">生成提货码</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- 提货码列表卡片 -->
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">提货码列表</h3>
+              <div class="card-tools">
+                <div class="input-group input-group-sm" style="width: 250px;">
+                  <input type="text" id="codeSearch" class="form-control float-right" placeholder="搜索提货码">
+                  <div class="input-group-append">
+                    <button type="button" class="btn btn-default" id="searchBtn">
+                      <i class="fas fa-search"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body table-responsive p-0">
+              <table class="table table-hover text-nowrap">
+                <thead>
+                  <tr>
+                    <th>提货码</th>
+                    <th>状态</th>
+                    <th>创建时间</th>
+                    <th>使用时间</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="codesTableBody">
+                  <% if (codes.length === 0) { %>
+                    <tr>
+                      <td colspan="5" class="text-center">暂无提货码</td>
+                    </tr>
+                  <% } else { %>
+                    <% codes.forEach(code => { %>
+                      <tr>
+                        <td><code><%= code.code %></code></td>
+                        <td>
+                          <% if (code.isUsed) { %>
+                            <span class="badge badge-success">已使用</span>
+                          <% } else { %>
+                            <span class="badge badge-primary">未使用</span>
+                          <% } %>
+                        </td>
+                        <td><%= new Date(code.createdAt).toLocaleString() %></td>
+                        <td><%= code.usedAt ? new Date(code.usedAt).toLocaleString() : '未使用' %></td>
+                        <td>
+                          <button type="button" class="btn btn-sm btn-info copy-btn" data-code="<%= code.code %>">
+                            <i class="fas fa-copy"></i> 复制
+                          </button>
+                          <% if (!code.isUsed) { %>
+                            <button type="button" class="btn btn-sm btn-danger delete-btn" data-id="<%= code._id %>">
+                              <i class="fas fa-trash"></i> 删除
+                            </button>
+                          <% } %>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+            <div class="card-footer clearfix">
+              <ul class="pagination pagination-sm m-0 float-right">
+                <% for(let i = 1; i <= totalPages; i++) { %>
+                  <li class="page-item <%= currentPage == i ? 'active' : '' %>">
+                    <a class="page-link" href="/admin/games/<%= game._id %>/codes?page=<%= i %>"><%= i %></a>
+                  </li>
+                <% } %>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 批量操作卡片 -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">批量操作</h3>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <button type="button" id="exportCodesBtn" class="btn btn-success btn-block">
+                    <i class="fas fa-file-export"></i> 导出所有提货码
+                  </button>
+                </div>
+                <div class="col-md-6">
+                  <button type="button" id="deleteUnusedBtn" class="btn btn-danger btn-block">
+                    <i class="fas fa-trash"></i> 删除所有未使用提货码
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 确认删除模态框 -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">确认删除</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>确定要删除这个提货码吗？此操作不可恢复。</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 批量删除确认模态框 -->
+<div class="modal fade" id="bulkDeleteConfirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">确认批量删除</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>确定要删除该游戏下<strong>所有未使用</strong>的提货码吗？此操作不可恢复。</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger" id="confirmBulkDeleteBtn">删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 生成成功模态框 -->
+<div class="modal fade" id="generateSuccessModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">提货码生成成功</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>成功生成以下提货码：</p>
+        <div class="form-group">
+          <textarea id="generatedCodes" class="form-control" rows="10" readonly></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="copyAllCodesBtn">复制全部</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(function() {
+    // 生成提货码
+    $('#generateCodesForm').on('submit', function(e) {
+      e.preventDefault();
+      const codeCount = $('#codeCount').val();
+      const codePrefix = $('#codePrefix').val();
+      
+      $.ajax({
+        url: '/admin/games/<%= game._id %>/codes',
+        type: 'POST',
+        data: {
+          count: codeCount,
+          prefix: codePrefix
+        },
+        success: function(response) {
+          $('#generatedCodes').val(response.codes.join('\n'));
+          $('#generateSuccessModal').modal('show');
+          setTimeout(() => {
+            location.reload();
+          }, 3000);
+        },
+        error: function(xhr) {
+          toastr.error(xhr.responseJSON.message || '生成提货码失败');
+        }
+      });
+    });
+
+    // 复制按钮
+    $('.copy-btn').on('click', function() {
+      const code = $(this).data('code');
+      navigator.clipboard.writeText(code)
+        .then(() => toastr.success('提货码已复制到剪贴板'))
+        .catch(() => toastr.error('复制失败，请手动复制'));
+    });
+
+    // 复制所有生成的提货码
+    $('#copyAllCodesBtn').on('click', function() {
+      const codes = $('#generatedCodes').val();
+      navigator.clipboard.writeText(codes)
+        .then(() => toastr.success('所有提货码已复制到剪贴板'))
+        .catch(() => toastr.error('复制失败，请手动复制'));
+    });
+
+    // 导出所有提货码
+    $('#exportCodesBtn').on('click', function() {
+      window.location.href = '/admin/games/<%= game._id %>/codes/export';
+    });
+
+    // 删除单个提货码
+    let codeIdToDelete = null;
+    $('.delete-btn').on('click', function() {
+      codeIdToDelete = $(this).data('id');
+      $('#deleteConfirmModal').modal('show');
+    });
+
+    $('#confirmDeleteBtn').on('click', function() {
+      if (!codeIdToDelete) return;
+      
+      $.ajax({
+        url: '/admin/redemption-codes/' + codeIdToDelete,
+        type: 'DELETE',
+        success: function() {
+          toastr.success('提货码已删除');
+          $('#deleteConfirmModal').modal('hide');
+          location.reload();
+        },
+        error: function(xhr) {
+          toastr.error(xhr.responseJSON.message || '删除提货码失败');
+        }
+      });
+    });
+
+    // 批量删除未使用提货码
+    $('#deleteUnusedBtn').on('click', function() {
+      $('#bulkDeleteConfirmModal').modal('show');
+    });
+
+    $('#confirmBulkDeleteBtn').on('click', function() {
+      $.ajax({
+        url: '/admin/games/<%= game._id %>/codes/unused',
+        type: 'DELETE',
+        success: function(response) {
+          toastr.success(`成功删除 ${response.deletedCount} 个未使用的提货码`);
+          $('#bulkDeleteConfirmModal').modal('hide');
+          location.reload();
+        },
+        error: function(xhr) {
+          toastr.error(xhr.responseJSON.message || '批量删除提货码失败');
+        }
+      });
+    });
+
+    // 搜索功能
+    $('#searchBtn').on('click', function() {
+      const searchTerm = $('#codeSearch').val().trim();
+      if (!searchTerm) return;
+      
+      window.location.href = `/admin/games/<%= game._id %>/codes?search=${encodeURIComponent(searchTerm)}`;
+    });
+
+    $('#codeSearch').on('keypress', function(e) {
+      if (e.which === 13) {
+        $('#searchBtn').click();
+      }
+    });
+  });
+</script>
